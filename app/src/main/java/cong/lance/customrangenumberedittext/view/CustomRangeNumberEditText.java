@@ -124,9 +124,12 @@ public class CustomRangeNumberEditText extends EditText{
 
         preContent = getText().toString();
         currentContent = preContent+text;
+        StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
+        currentStringBuffer.insert(getSelectionStart(), text);
 
         Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
         Log.v("currentContent",String.valueOf(currentContent));
+        Log.v("currentStringBuffer",String.valueOf(currentStringBuffer.toString().isEmpty()?"empty":currentStringBuffer));
 
         if(situation == ALL_POSITIVE){
             //input the point at the first time,reject
@@ -148,8 +151,37 @@ public class CustomRangeNumberEditText extends EditText{
                 return true;
             }
 
-            StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
-            currentStringBuffer.insert(getSelectionStart(), text);
+            double newNumber = 0;
+            try {
+                newNumber = Double.parseDouble(currentStringBuffer.toString());
+            }catch (Exception e){
+                Log.v("parse error", "parse currentStringBuffer");
+                return true;
+            }
+            Log.v("newNumber",String.valueOf(newNumber));
+            if (newNumber > maxDouble) {
+                return true;
+            } else {
+                return false;
+            }
+        }else if(situation == ALL_NAGETIVE){
+
+            if(getText().toString().isEmpty()){
+                if(text.toString().equals("-")) {
+                    return false;
+                }else {
+                    return true;
+                }
+            }
+            if(preContent.contains(".") && text.toString().equals(".")){
+                return true;
+            }
+            if(!preContent.isEmpty() && !preContent.equals("-") && Double.parseDouble(preContent) == minDouble){
+                return true;
+            }
+            if(preContent.equals("-0") && !text.equals(".")){
+                return true;
+            }
 
             double newNumber = 0;
             try {
@@ -159,13 +191,12 @@ public class CustomRangeNumberEditText extends EditText{
                 return true;
             }
             Log.v("newNumber",String.valueOf(newNumber));
-            Log.v("currentStringBuffer",String.valueOf(currentStringBuffer));
-            if (newNumber > maxDouble) {
+            if (newNumber < minDouble) {
                 return true;
             } else {
                 return false;
             }
-        }else if(situation == ALL_NAGETIVE){
+
 
         }else if(situation == NAGETIVE_POSITIVE){
 
