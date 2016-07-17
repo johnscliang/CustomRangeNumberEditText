@@ -117,19 +117,25 @@ public class CustomRangeNumberEditText extends EditText{
         }
     }
 
+    private String chars4input = ".-0123456789";
     private String preContent;//the content before input
-    private String currentContent;//the content after input
 
     private boolean overload(CharSequence text, int newCursorPosition) {
 
         preContent = getText().toString();
-        currentContent = preContent+text;
         StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
         currentStringBuffer.insert(getSelectionStart(), text);
 
-        Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
-        Log.v("currentContent",String.valueOf(currentContent));
-        Log.v("currentStringBuffer",String.valueOf(currentStringBuffer.toString().isEmpty()?"empty":currentStringBuffer));
+//        Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
+//        Log.v("currentContent",String.valueOf(currentContent));
+//        Log.v("currentStringBuffer",String.valueOf(currentStringBuffer.toString().isEmpty()?"empty":currentStringBuffer));
+
+        if(!chars4input.contains(text)){
+            return true;
+        }
+        if(preContent.contains(".") && text.toString().equals(".")){
+            return true;
+        }
 
         if(situation == ALL_POSITIVE){
             //input the point at the first time,reject
@@ -137,14 +143,17 @@ public class CustomRangeNumberEditText extends EditText{
                 if(text.toString().equals(".")){
                     return true;
                 }
-            }
-            //can not input more than 2 points
-            if(preContent.contains(".") && text.toString().equals(".")){
-                return true;
+                if(text.toString().equals("-")){
+                    return true;
+                }
             }
             //the content is the max double,reject any input
-            if(!preContent.isEmpty() && !preContent.equals("-") && Double.parseDouble(preContent) == maxDouble){
-                return true;
+            try {
+                if(Double.parseDouble(preContent) == maxDouble){
+                 return true;
+                }
+            }catch (Exception e){
+
             }
             //should not star with 0
             if(preContent.equals("0") && !text.equals(".")){
@@ -158,7 +167,7 @@ public class CustomRangeNumberEditText extends EditText{
                 Log.v("parse error", "parse currentStringBuffer");
                 return true;
             }
-            Log.v("newNumber",String.valueOf(newNumber));
+//            Log.v("newNumber",String.valueOf(newNumber));
             if (newNumber > maxDouble) {
                 return true;
             } else {
@@ -173,11 +182,12 @@ public class CustomRangeNumberEditText extends EditText{
                     return true;
                 }
             }
-            if(preContent.contains(".") && text.toString().equals(".")){
-                return true;
-            }
-            if(!preContent.isEmpty() && !preContent.equals("-") && Double.parseDouble(preContent) == minDouble){
-                return true;
+            try {
+                if(Double.parseDouble(preContent) == minDouble){
+                    return true;
+                }
+            }catch (Exception e){
+
             }
             if(preContent.equals("-0") && !text.equals(".")){
                 return true;
@@ -190,20 +200,60 @@ public class CustomRangeNumberEditText extends EditText{
                 Log.v("parse error", "parse currentStringBuffer");
                 return true;
             }
-            Log.v("newNumber",String.valueOf(newNumber));
+//            Log.v("newNumber",String.valueOf(newNumber));
             if (newNumber < minDouble) {
                 return true;
             } else {
                 return false;
             }
 
-
         }else if(situation == NAGETIVE_POSITIVE){
+
+            if(getText().toString().isEmpty()){
+                if(text.toString().equals(".")){
+                    return true;
+                }
+                if(text.toString().equals("-")){
+                    return false;
+                }
+            }
+            try {
+                if(Double.parseDouble(preContent) == maxDouble){
+                    return true;
+                }
+                if(Double.parseDouble(preContent) == minDouble){
+                    return true;
+                }
+            }catch (Exception e){
+
+            }
+
+            if(preContent.equals("-0") && !text.equals(".")){
+                return true;
+            }
+            if(preContent.equals("0") && !text.equals(".")){
+                return true;
+            }
+
+            double newNumber = 0;
+            try {
+                newNumber = Double.parseDouble(currentStringBuffer.toString());
+            }catch (Exception e){
+                Log.v("parse error", "parse currentStringBuffer");
+                return true;
+            }
+//            Log.v("newNumber",String.valueOf(newNumber));
+            if(newNumber > maxDouble){
+                return true;
+            }
+            if(newNumber < minDouble){
+                return true;
+            }
+            return false;
 
         }else {
             return false;
         }
-        return false;
     }
 
     private class LimitInputConnectionWrapper extends InputConnectionWrapper {
@@ -228,9 +278,9 @@ public class CustomRangeNumberEditText extends EditText{
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         if(!focused){
-            long currentnumber = 0;
+            double currentnumber = 0;
             try {
-                currentnumber = Long.parseLong(getText().toString());
+                currentnumber = Double.parseDouble(getText().toString());
 //                Log.v("currentnumber",String.valueOf(currentnumber));
                 if(currentnumber < minDouble){
                     setText("");

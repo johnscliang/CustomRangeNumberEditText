@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         customrange:minDouble="-20"
-        customrange:maxDouble="-10" />
+        customrange:maxDouble="25" />
 
     <EditText
         android:layout_width="200dp"
