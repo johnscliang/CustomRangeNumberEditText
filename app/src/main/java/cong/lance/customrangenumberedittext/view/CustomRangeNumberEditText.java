@@ -2,6 +2,7 @@ package cong.lance.customrangenumberedittext.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ActionMode;
@@ -19,8 +20,12 @@ import cong.lance.customrangenumberedittext.R;
  */
 public class CustomRangeNumberEditText extends EditText{
 
-    private double minDouble = 3;
+    private double minDouble;
     private double maxDouble;
+    private int situation;
+    private final int ALL_POSITIVE = 1;
+    private final int ALL_NAGETIVE = 2;
+    private final int NAGETIVE_POSITIVE = 3;
 
     public double getMinDouble() {
         return minDouble;
@@ -61,7 +66,17 @@ public class CustomRangeNumberEditText extends EditText{
         setSingleLine(true);//it would change the input panel's Enter key to "complete"
         TypedArray a = context.obtainStyledAttributes(attributeSet, R.styleable.CustomRangeNumberEditText);
         try {
-            this.maxDouble = Double.parseDouble(a.getString(R.styleable.CustomRangeNumberEditText_maxDouble));
+            setMaxDouble(a.getFloat(R.styleable.CustomRangeNumberEditText_maxDouble,0));
+            setMinDouble(a.getFloat(R.styleable.CustomRangeNumberEditText_minDouble,0));
+            if(getMaxDouble() >= 0 && getMinDouble() >= 0 ){
+                situation = ALL_POSITIVE;
+            }
+            if(getMaxDouble() >= 0 && getMinDouble() < 0 ){
+                situation = NAGETIVE_POSITIVE;
+            }
+            if(getMaxDouble() < 0 && getMinDouble() < 0 ){
+                situation = ALL_NAGETIVE;
+            }
         } catch (Exception e) {
             Log.v("parse error", "parse attributes");
         } finally {
@@ -110,46 +125,54 @@ public class CustomRangeNumberEditText extends EditText{
         preContent = getText().toString();
         currentContent = preContent+text;
 
-//        Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
-//        Log.v("currentContent",String.valueOf(currentContent));
+        Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
+        Log.v("currentContent",String.valueOf(currentContent));
 
-        //input the point at the first time,reject
-        if(getText().toString().isEmpty()){
-            if(text.toString().equals(".")){
+        if(situation == ALL_POSITIVE){
+            //input the point at the first time,reject
+            if(getText().toString().isEmpty()){
+                if(text.toString().equals(".")){
+                    return true;
+                }
+            }
+            //can not input more than 2 points
+            if(preContent.contains(".") && text.toString().equals(".")){
                 return true;
             }
-        }
-        //can not input more than 2 points
-        if(preContent.contains(".") && text.toString().equals(".")){
-            return true;
-        }
-        //the content is the max double,reject any input
-        if(!preContent.isEmpty() && Double.parseDouble(preContent) == maxDouble){
-            return true;
-        }
-        //should not star with 0
-        if(preContent.equals("0") && !text.equals(".")){
-            return true;
-        }
+            //the content is the max double,reject any input
+            if(!preContent.isEmpty() && !preContent.equals("-") && Double.parseDouble(preContent) == maxDouble){
+                return true;
+            }
+            //should not star with 0
+            if(preContent.equals("0") && !text.equals(".")){
+                return true;
+            }
 
-        StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
-        currentStringBuffer.insert(getSelectionStart(), text);
+            StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
+            currentStringBuffer.insert(getSelectionStart(), text);
 
-        double newNumber = 0;
-        try {
-            newNumber = Double.parseDouble(currentStringBuffer.toString());
-        }catch (Exception e){
-            Log.v("parse error", "parse currentStringBuffer");
-            return true;
-        }
-//        Log.v("newNumber",String.valueOf(newNumber));
-//        Log.v("currentStringBuffer",String.valueOf(currentStringBuffer));
-        if (newNumber > maxDouble) {
-            return true;
-        } else {
+            double newNumber = 0;
+            try {
+                newNumber = Double.parseDouble(currentStringBuffer.toString());
+            }catch (Exception e){
+                Log.v("parse error", "parse currentStringBuffer");
+                return true;
+            }
+            Log.v("newNumber",String.valueOf(newNumber));
+            Log.v("currentStringBuffer",String.valueOf(currentStringBuffer));
+            if (newNumber > maxDouble) {
+                return true;
+            } else {
+                return false;
+            }
+        }else if(situation == ALL_NAGETIVE){
+
+        }else if(situation == NAGETIVE_POSITIVE){
+
+        }else {
             return false;
         }
-
+        return false;
     }
 
     private class LimitInputConnectionWrapper extends InputConnectionWrapper {
@@ -171,4 +194,23 @@ public class CustomRangeNumberEditText extends EditText{
 
     }
 
+    @Override
+    protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
+        if(!focused){
+            long currentnumber = 0;
+            try {
+                currentnumber = Long.parseLong(getText().toString());
+//                Log.v("currentnumber",String.valueOf(currentnumber));
+                if(currentnumber < minDouble){
+                    setText("");
+                }
+                if(currentnumber > maxDouble){
+                    setText("");
+                }
+            }catch (Exception e){
+                setText("");
+            }
+        }
+        super.onFocusChanged(focused, direction, previouslyFocusedRect);
+    }
 }

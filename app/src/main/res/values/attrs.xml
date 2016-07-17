@@ -2,7 +2,8 @@
 <resources>
 
     <declare-styleable name="CustomRangeNumberEditText">
-        <attr name="maxDouble" format="string"/>
+        <attr name="maxDouble" format="float"/>
+        <attr name="minDouble" format="float"/>
     </declare-styleable>
 
 </resources>
