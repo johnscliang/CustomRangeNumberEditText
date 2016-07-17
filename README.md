@@ -56,3 +56,6 @@ remember change the package name to your's.And add the```xmlns:customrange="http
 * customrange:minDouble=""
 * customrange:maxDouble=""
 
+# Bug
+if you find any bug,let's get it fixed.thx :)
+
