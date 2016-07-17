@@ -45,14 +45,14 @@ An custom EditText in Android which could specify an custom range of number.ä¸€ä
     </RelativeLayout>
 
 ```
-remember change the package name to your's.And add the```xmlns:customrange="http://schemas.android.com/apk/res-auto"```
+Remember to change the package name to yours.<br/>
+And add the```xmlns:customrange="http://schemas.android.com/apk/res-auto"```
 
 # API
-> setMinDouble(double minDouble)
+* setMinDouble(double minDouble)
+* setMaxDouble(double maxDouble)
 
-> setMaxDouble(double maxDouble)
-
-> xml attrs
+# xml attrs
 * customrange:minDouble=""
 * customrange:maxDouble=""
 
