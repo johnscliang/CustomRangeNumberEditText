@@ -1,4 +1,4 @@
-package cong.lance.customrangenumberedittext;
+package cong.lance.test;
 
 import org.junit.Test;
 

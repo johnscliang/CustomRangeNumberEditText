@@ -1,8 +1,9 @@
-package cong.lance.customrangenumberedittext.view;
+package lance.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ActionMode;
@@ -12,8 +13,6 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.EditText;
-
-import cong.lance.customrangenumberedittext.R;
 
 /**
  * Created by lance on 16-7-17.
@@ -63,7 +62,6 @@ public class CustomRangeNumberEditText extends EditText{
     private void parseAttributes(Context context, AttributeSet attributeSet) {
         if (attributeSet == null) return;
         //some attr setting
-        setSingleLine(true);//it would change the input panel's Enter key to "complete"
         TypedArray a = context.obtainStyledAttributes(attributeSet, R.styleable.CustomRangeNumberEditText);
         try {
             setMaxDouble(a.getFloat(R.styleable.CustomRangeNumberEditText_maxDouble,0));
@@ -90,31 +88,33 @@ public class CustomRangeNumberEditText extends EditText{
     }
 
     private void  init(){
-        this.setCustomSelectionActionModeCallback(new ActionModeCallBack());
-        this.setLongClickable(false);
-    }
+        this.setSingleLine(true);//it would change the input panel's Enter key to "complete"
+        this.setLongClickable(false);//work in api level < 11
+        //no pasting
+        if(Build.VERSION.SDK_INT >= 11){
+            this.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    return false;
+                }
 
-    private class ActionModeCallBack implements ActionMode.Callback{
+                @Override
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                    return false;
+                }
 
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            return false;
+                @Override
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                    return false;
+                }
+
+                @Override
+                public void onDestroyActionMode(ActionMode mode) {
+
+                }
+            });
         }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return false;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            return false;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-
-        }
+        this.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);//no pasting when the screen orientation was landscape
     }
 
     private String chars4input = ".-0123456789";
@@ -126,10 +126,6 @@ public class CustomRangeNumberEditText extends EditText{
         StringBuffer currentStringBuffer = new StringBuffer(getText().toString());
         currentStringBuffer.insert(getSelectionStart(), text);
 
-//        Log.v("preContent",String.valueOf(preContent.isEmpty()?"empty":preContent));
-//        Log.v("currentContent",String.valueOf(currentContent));
-//        Log.v("currentStringBuffer",String.valueOf(currentStringBuffer.toString().isEmpty()?"empty":currentStringBuffer));
-
         if(!chars4input.contains(text)){
             return true;
         }
@@ -139,7 +135,7 @@ public class CustomRangeNumberEditText extends EditText{
 
         if(situation == ALL_POSITIVE){
             //input the point at the first time,reject
-            if(getText().toString().isEmpty()){
+            if(isNullOrEmpty(getText().toString())){
                 if(text.toString().equals(".")){
                     return true;
                 }
@@ -175,7 +171,7 @@ public class CustomRangeNumberEditText extends EditText{
             }
         }else if(situation == ALL_NAGETIVE){
 
-            if(getText().toString().isEmpty()){
+            if(isNullOrEmpty(getText().toString())){
                 if(text.toString().equals("-")) {
                     return false;
                 }else {
@@ -209,7 +205,7 @@ public class CustomRangeNumberEditText extends EditText{
 
         }else if(situation == NAGETIVE_POSITIVE){
 
-            if(getText().toString().isEmpty()){
+            if(isNullOrEmpty(getText().toString())){
                 if(text.toString().equals(".")){
                     return true;
                 }
@@ -261,9 +257,6 @@ public class CustomRangeNumberEditText extends EditText{
             super(target, mutable);
         }
 
-
-
-
         @Override
         public boolean commitText(CharSequence text, int newCursorPosition) {
             if (overload(text, newCursorPosition)) {
@@ -271,7 +264,6 @@ public class CustomRangeNumberEditText extends EditText{
             }
             return super.commitText(text, newCursorPosition);
         }
-
 
     }
 
@@ -294,4 +286,17 @@ public class CustomRangeNumberEditText extends EditText{
         }
         super.onFocusChanged(focused, direction, previouslyFocusedRect);
     }
+
+    public boolean isNullOrEmpty(String str) {
+        try {
+            if (str == null) {
+                return true;
+            }
+            return (str.trim().length() == 0);
+        } catch (Throwable e) {
+//            Log.v("isNullOrEmpty","error");
+        }
+        return true;
+    }
+
 }
